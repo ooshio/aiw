@@ -7,7 +7,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.aiwolf.client.lib.AttackContentBuilder;
 import org.aiwolf.client.lib.Content;
+import org.aiwolf.client.lib.VoteContentBuilder;
 import org.aiwolf.common.data.Agent;
 import org.aiwolf.common.data.Judge;
 import org.aiwolf.common.data.Player;
@@ -177,47 +179,81 @@ public class MyBasePlayer implements Player {
 		}
 	}
 
+	private void addExecutedAgent(Agent executedAgent) {
+		if(executedAgent != null) {
+			aliveOthers.remove(executedAgent);
+			if(!executedAgents.contains(executedAgent)) {
+				executedAgents.add(executedAgent);
+			}
+		}
+	}
+
+	private void addKilledAgent(Agent killedAgent) {
+		if(killedAgent != null) {
+			aliveOthers.remove(killedAgent);
+			if(!killedAgents.contains(killedAgent)) {
+				killedAgents.add(killedAgent);
+			}
+		}
+	}
+
+	// 投票先候補を選びvoteCandidateにセットする
+	protected void chooseVoteCandidate() {
+
+	}
+
+	@Override
+	public String talk() {
+		chooseVoteCandidate();
+		if(voteCandidate != null && voteCandidate != declaredVoteCandidate) {
+			talkQueue.offer(new Content(new VoteContentBuilder(voteCandidate)));
+			declaredVoteCandidate = voteCandidate;
+		}
+		return talkQueue.isEmpty() ? Talk.SKIP : talkQueue.poll().getText();
+	}
+
+	// 襲撃先候補を選びattackVoteCandidateにセットする
+	protected void chooseAttackVoteCandidate() {
+
+	}
+
+	@Override
+	public String whisper() {
+		chooseAttackVoteCandidate();
+		if(attackVoteCandidate != null && attackVoteCandidate != declaredAttackVoteCandidate) {
+			whisperQueue.offer(new Content(new AttackContentBuilder(attackVoteCandidate)));
+			declaredAttackVoteCandidate = attackVoteCandidate;
+		}
+		return whisperQueue.isEmpty() ? Talk.SKIP : whisperQueue.poll().getText();
+	}
+
+	@Override
+	public Agent vote() {
+		canTalk = false;
+		chooseVoteCandidate();
+		return voteCandidate;
+	}
 
 	@Override
 	public Agent attack() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		canWhisper = false;
+		chooseAttackVoteCandidate();
+		canWhisper = true;
+		return attackVoteCandidate;
 	}
 
 	@Override
 	public Agent divine() {
-		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+
+	@Override
+	public Agent guard() {
 		return null;
 	}
 
 	@Override
 	public void finish() {
-		// TODO 自動生成されたメソッド・スタブ
-
-	}
-
-	@Override
-	public Agent guard() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
-	}
-
-	@Override
-	public String talk() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
-	}
-
-	@Override
-	public Agent vote() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
-	}
-
-	@Override
-	public String whisper() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
 	}
 
 }
